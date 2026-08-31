@@ -118,13 +118,20 @@ TEXTS = {
             "🏨 <b>Dunyo Hotel 1</b> — xush kelibsiz!\n\n"
             "📍 Toshkent, Sergeli — Quruvchilar 2, Farog‘atli 2\n\n"
             "<b>Har bir xonada:</b>\n"
-            "🚿 Dush va sanuzel\n"
+            "🚿 Dush\n"
+            "🚽 Tualet\n"
             "🛏 Spalni\n"
             "❄️ Konditsioner\n"
             "📺 Smart TV\n"
             "📶 Wi-Fi\n\n"
             "🔑 Xonalar, rasmlar va narxlarni ko‘rish hamda bron so‘rovini yuborish uchun "
             "pastdagi tugmani bosing."
+        ),
+        # Appended to "start" only when INFO_URL is configured — without it the
+        # button this sentence points at is not on the keyboard.
+        "start_info": (
+            "\n\nℹ️ Admin bilan bog‘lanish va boshqa masalalar uchun "
+            "«Qo‘shimcha ma’lumotlar» tugmasiga kiring."
         ),
         "open": "🔑 Xonalarni ko‘rish",
         "info": "ℹ️ Qo‘shimcha ma’lumotlar",
@@ -161,13 +168,18 @@ TEXTS = {
             "🏨 <b>Dunyo Hotel 1</b> — добро пожаловать!\n\n"
             "📍 Ташкент, Сергели — Курувчилар 2, Фарогатли 2\n\n"
             "<b>В каждом номере:</b>\n"
-            "🚿 Душ и санузел\n"
+            "🚿 Душ\n"
+            "🚽 Туалет\n"
             "🛏 Спальня\n"
             "❄️ Кондиционер\n"
             "📺 Smart TV\n"
             "📶 Wi-Fi\n\n"
             "🔑 Нажмите кнопку ниже, чтобы посмотреть номера, фото и цены "
             "и отправить заявку на бронирование."
+        ),
+        "start_info": (
+            "\n\nℹ️ Для связи с администратором и по другим вопросам "
+            "откройте «Дополнительная информация»."
         ),
         "open": "🔑 Посмотреть номера",
         "info": "ℹ️ Дополнительная информация",
@@ -377,8 +389,12 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
     async def on_start(message: Message) -> None:
         nonlocal photo_id
         lang = "ru" if (message.from_user and message.from_user.language_code == "ru") else "uz"
-        caption = TEXTS[lang]["start"]
         markup = keyboard_for(message, settings, lang)
+        # The info sentence only makes sense next to the info button, and that
+        # button only exists in a private chat with INFO_URL set.
+        caption = TEXTS[lang]["start"]
+        if settings.info_url and markup is not None:
+            caption += TEXTS[lang]["start_info"]
 
         # The keyboard rides on the photo, and the photo is the part that can fail:
         # a missing file or a Telegram hiccup must not take /start down with it,
