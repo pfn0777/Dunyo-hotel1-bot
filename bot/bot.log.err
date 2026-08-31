@@ -1,4 +1,15 @@
-2026-08-31 14:28:59,421 INFO Mini App: https://dunyo-hotel1-bot.vercel.app | rooms: 8
-2026-08-31 14:28:59,425 INFO Start polling
-2026-08-31 14:28:59,823 INFO Run polling for bot @dunyohotel1_bot id=8877102734 - 'Dunyo Hotel 1'
-2026-08-31 14:29:33,203 INFO Update id=213579067 is handled. Duration 1702 ms by bot id=8877102734
+2026-08-31 14:37:25,128 INFO Mini App: https://dunyo-hotel1-bot.vercel.app | rooms: 8
+2026-08-31 14:37:25,135 INFO Start polling
+2026-08-31 14:37:25,504 INFO Run polling for bot @dunyohotel1_bot id=8877102734 - 'Dunyo Hotel 1'
+2026-08-31 14:38:15,159 INFO Update id=213579069 is handled. Duration 906 ms by bot id=8877102734
+2026-08-31 15:48:06,833 INFO Update id=213579070 is handled. Duration 718 ms by bot id=8877102734
+2026-08-31 16:33:17,919 INFO Update id=213579071 is handled. Duration 514 ms by bot id=8877102734
+2026-08-31 17:12:36,275 INFO Update id=213579072 is handled. Duration 672 ms by bot id=8877102734
+2026-08-31 17:20:00,255 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2026-08-31 17:20:00,256 WARNING Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8877102734)
+2026-08-31 17:20:01,577 INFO Connection established (tryings = 1, bot id = 8877102734)
+2026-08-31 17:20:02,318 INFO Update id=213579073 is handled. Duration 733 ms by bot id=8877102734
+2026-08-31 17:43:11,212 INFO Update id=213579074 is handled. Duration 266 ms by bot id=8877102734
+2026-08-31 18:09:20,661 INFO Update id=213579075 is handled. Duration 406 ms by bot id=8877102734
+2026-08-31 18:29:27,311 INFO Update id=213579076 is handled. Duration 452 ms by bot id=8877102734
+2026-08-31 18:31:51,049 INFO Update id=213579077 is handled. Duration 405 ms by bot id=8877102734

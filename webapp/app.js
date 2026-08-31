@@ -15,6 +15,13 @@
   // Mirrors MAX_NIGHTS in bot/bot.py — the bot rejects anything longer.
   const MAX_NIGHTS = 90;
   const NBSP = ' ';
+  // Cache buster for images/. `vercel.json` serves /images/* as
+  // `max-age=31536000, immutable`, and the ingest script renumbers photos in
+  // place — deleting one photo shifts every later file, so the SAME filename
+  // ends up holding a DIFFERENT picture. A guest who already opened the app
+  // keeps the old bytes for a year and sees the wrong (or a duplicated) photo.
+  // Bump this whenever any file in images/ changes content.
+  const ASSET_V = '2';
 
   /* ── state ───────────────────────────────────────────────────── */
 
@@ -187,7 +194,7 @@
     rivets.textContent = '';
     room.photos.forEach((src, i) => {
       const img = document.createElement('img');
-      img.src = 'images/' + src;
+      img.src = 'images/' + src + '?v=' + ASSET_V;
       img.alt = roomTitle(room) + ' — ' + t().photoOf(i + 1, room.photos.length);
       img.loading = i === 0 ? 'eager' : 'lazy';
       img.decoding = 'async';

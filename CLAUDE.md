@@ -35,6 +35,12 @@ Scaffolded by the `hotel-miniapp` skill from the Dunyo Hotel pattern.
 - **`webapp/data.js` and `bot/rooms.py` mirror each other.** Editing one without the other makes
   the price the guest saw disagree with the price the owner receives. Both files carry this warning
   in their header comments, and `bot/test_rooms_sync.py` is the guard.
+- **Renaming a photo in place is a cache trap.** `vercel.json` serves `/images/*` as
+  `max-age=31536000, immutable`, and `ingest_rooms.py` renumbers photos in place — deleting one
+  shifts every later file, so the same filename comes to hold a different picture and returning
+  guests keep the old bytes for a year. `app.js` appends `?v=ASSET_V` to every photo URL for this
+  reason. **Bump `ASSET_V` whenever any file in `webapp/images/` changes content.** Recorded in
+  [docs/specs/image-cache-busting.md](docs/specs/image-cache-busting.md).
 - **Not every tag on the board is a room.** `ROOMS` also carries *shared spaces*, marked
   `shared: true` with `price: null` / `price=None`. They exist to be looked at, not requested: they
   have no number, so they carry their own `uz_name`/`ru_name` (Python) or `titleKey`/`noteKey`
