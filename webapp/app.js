@@ -489,6 +489,7 @@
     $('addrText').textContent = HOTEL.address[state.lang];
     $('mapBtnText').textContent = s.showOnMap;
     $('bookBtnText').textContent = s.book;
+    $('infoBtnText').textContent = s.moreInfo;
     $('cardTitle').textContent = s.formTitle;
     $('cardLead').textContent = s.formLead;
     $('lRoom').textContent = s.fRoom;
@@ -593,6 +594,14 @@
     $('cardClose').addEventListener('click', pop);
     $('scrim').addEventListener('click', pop);
     $('bookBtn').addEventListener('click', openCard);
+
+    // The hotel's full listing lives outside this app; open it in Telegram's own
+    // browser so the Mini App (and any request in progress) stays open behind it.
+    $('infoBtn').addEventListener('click', () => {
+      haptic('light');
+      if (inTelegram && tg.openLink) tg.openLink(HOTEL.infoUrl);
+      else window.open(HOTEL.infoUrl, '_blank', 'noopener');
+    });
 
     $('gMinus').addEventListener('click', () => { state.guests = Math.max(1, state.guests - 1); haptic('light'); recalc(); });
     $('gPlus').addEventListener('click', () => { state.guests = Math.min(MAX_GUESTS, state.guests + 1); haptic('light'); recalc(); });

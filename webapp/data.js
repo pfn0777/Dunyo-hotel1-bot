@@ -13,6 +13,8 @@ const HOTEL = {
   },
   lat: 41.216128,
   lon: 69.266011,
+  // Full hotel listing — everything this app deliberately does not claim itself.
+  infoUrl: 'https://birjoyda.vercel.app/dunyo-hotel-1',
 };
 
 const ROOMS = [
@@ -40,6 +42,7 @@ const T = {
     photoOf: (i, n) => `${i} / ${n}`,
     book: 'Kalitni band qilish',
     bookShort: "So‘rov yuborish",
+    moreInfo: "Qo‘shimcha ma‘lumotlar",
     addressLabel: 'Manzil',
     showOnMap: 'Xaritada ko‘rsatish',
     copied: 'Manzil nusxalandi',
@@ -97,6 +100,7 @@ const T = {
     photoOf: (i, n) => `${i} / ${n}`,
     book: 'Забронировать ключ',
     bookShort: 'Отправить заявку',
+    moreInfo: 'Дополнительная информация',
     addressLabel: 'Адрес',
     showOnMap: 'Показать на карте',
     copied: 'Адрес скопирован',

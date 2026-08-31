@@ -621,6 +621,25 @@ body.is-over .board {
 }
 .brass-btn--wide { margin-top: 18px; }
 
+/* Secondary action: the same brass family one step quieter, so the sheet keeps a
+   single primary button. Borrows the plate language of .plaque__map. */
+.brass-btn--quiet {
+  margin-top: 10px;
+  min-height: 48px;
+  border: 1px solid var(--brass-4);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(224, 195, 119, .16), rgba(90, 68, 26, .22));
+  box-shadow: none;
+  font-size: 13px;
+  color: var(--brass-1);
+  text-shadow: none;
+}
+.brass-btn--quiet:active {
+  transform: none;
+  background: linear-gradient(180deg, rgba(224, 195, 119, .3), rgba(90, 68, 26, .3));
+  box-shadow: none;
+}
+
 /* ─────────────────────────  guest card  ───────────────────────── */
 
 .card {
