@@ -12,12 +12,24 @@
   // Deliberately above any plausible party for these rooms: the hotel has not
   // confirmed an occupancy limit, so this is a sanity bound, not a house rule.
   const MAX_GUESTS = 20;
+  // Mirrors MAX_NIGHTS in bot/bot.py — the bot rejects anything longer.
+  const MAX_NIGHTS = 90;
   const NBSP = ' ';
 
   /* ── state ───────────────────────────────────────────────────── */
 
+  /* Telegram Web runs the app in a cross-origin iframe; a browser blocking
+     third-party storage makes every localStorage access throw SecurityError.
+     Uncaught, that kills the IIFE before anything is wired up. */
+  function storedLang() {
+    try { return localStorage.getItem('dh.lang'); } catch (e) { return null; }
+  }
+  function storeLang(v) {
+    try { localStorage.setItem('dh.lang', v); } catch (e) { /* storage blocked */ }
+  }
+
   const state = {
-    lang: localStorage.getItem('dh.lang') === 'ru' ? 'ru' : 'uz',
+    lang: storedLang() === 'ru' ? 'ru' : 'uz',
     room: null,
     photo: 0,
     guests: 2,
@@ -43,10 +55,15 @@
     return room.shared ? t()[room.titleKey] : t().roomTitle(room.plate);
   }
 
+  /* Uzbekistan is UTC+5 year-round with no DST. The bot validates check-in
+     against the Tashkent date (today_tashkent in bot.py); computing "today" from
+     the device clock instead would let a guest abroad pass client validation and
+     be rejected by the bot after the app had already closed. */
+  const TASHKENT_OFFSET_MIN = 5 * 60;
+
   function todayISO(offsetDays) {
-    const d = new Date();
-    d.setHours(12, 0, 0, 0);
-    d.setDate(d.getDate() + (offsetDays || 0));
+    const d = new Date(Date.now() + TASHKENT_OFFSET_MIN * 60000);
+    d.setUTCDate(d.getUTCDate() + (offsetDays || 0));
     return d.toISOString().slice(0, 10);
   }
 
@@ -128,7 +145,9 @@
       price.className = 'hole__price';
       price.textContent = room.shared
         ? t()[room.titleKey].toUpperCase()
-        : money(room.price) + ' ' + t().som;
+        : room.price == null
+          ? t().priceUnset
+          : money(room.price) + ' ' + t().som;
       lip.appendChild(price);
 
       btn.append(mouth, lip);
@@ -156,9 +175,11 @@
     note.hidden = !room.shared;
     if (room.shared) note.textContent = t()[room.noteKey];
 
-    // A shared space has no price and cannot be requested: its sheet is a
-    // gallery only, so the brass button is off the sheet entirely.
-    $('bookBtn').hidden = !!room.shared;
+    // Only a priced room can be requested. Shared spaces are the usual case, but
+    // a priced-room entry with `price: null` is equally unrequestable — and
+    // BOOKABLE filters on the price, so `shared` alone is the wrong test: it
+    // would leave the button on a room openCard() cannot actually select.
+    $('bookBtn').hidden = room.price == null;
 
     const strip = $('gallery');
     const rivets = $('rivets');
@@ -291,17 +312,25 @@
     mark([$('fPhone')], $('errPhone'),
       $('fPhone').value.replace(/\D/g, '').length < 12 ? s.errPhone : null);
 
+    // Clear both date fields first: mark() only resets the inputs handed to it,
+    // so flagging one would otherwise leave the other stuck red from a previous
+    // attempt while the message on screen talks about a different field.
     const inV = $('fIn').value, outV = $('fOut').value;
+    mark([$('fIn'), $('fOut')], $('errDate'), null);
+    const nights = nightsBetween(inV, outV);
     if (!inV) mark([$('fIn')], $('errDate'), s.errIn);
     else if (inV < todayISO(0)) mark([$('fIn')], $('errDate'), s.errPast);
-    else if (nightsBetween(inV, outV) < 1) mark([$('fOut')], $('errDate'), s.errOut);
-    else mark([$('fIn'), $('fOut')], $('errDate'), null);
+    else if (nights < 1) mark([$('fOut')], $('errDate'), s.errOut);
+    // MAX_NIGHTS mirrors bot.py. Without it the card happily totals a 122-night
+    // stay and the bot answers "dates are wrong" without ever saying why.
+    else if (nights > MAX_NIGHTS) mark([$('fOut')], $('errDate'), s.errTooLong(MAX_NIGHTS));
 
     return ok;
   }
 
   function submit(e) {
     e.preventDefault();
+    $('errSend').hidden = true;   // stale from a previous failed send
     if (!validate()) {
       haptic('error');
       document.querySelector('.err:not([hidden])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -331,8 +360,22 @@
     $('sendBtnText').textContent = t().sending;
 
     if (inTelegram && typeof tg.sendData === 'function') {
+      // Telegram caps sendData at 4096 bytes and throws past it. Uncaught, the
+      // send button would stay disabled on "sending…" with nothing on screen to
+      // say the request never left.
+      try {
+        tg.sendData(JSON.stringify(payload));
+      } catch (sendErr) {
+        haptic('error');
+        btn.disabled = false;
+        $('sendBtnText').textContent = t().send;
+        const banner = $('errSend');
+        banner.textContent = t().errSend;
+        banner.hidden = false;
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       haptic('success');
-      tg.sendData(JSON.stringify(payload));
       // Telegram closes the Mini App itself; this only shows if it does not.
       setTimeout(() => finish(), 900);
     } else {
@@ -439,7 +482,7 @@
     const s = t();
     document.body.dataset.lang = state.lang;
     document.documentElement.lang = state.lang;
-    localStorage.setItem('dh.lang', state.lang);
+    storeLang(state.lang);
 
     $('boardNote').textContent = s.boardNote;
     $('addrLabel').textContent = s.addressLabel;
@@ -472,7 +515,15 @@
     if (!inTelegram) notice.textContent = s.outsideTg;
 
     state.lastDigits = {};
+    // renderBoard() replaces every tag node, so the one we lifted is now detached.
+    // Re-point at the rebuilt tag for the open room instead of leaving pop() to
+    // un-lift an orphan while the new tag sits on its hook.
+    const liftedId = state.sourceTag && state.room ? state.room.id : null;
     renderBoard();
+    if (liftedId) {
+      state.sourceTag = document.querySelector(`[data-id="${liftedId}"] .tag`);
+      if (state.sourceTag) state.sourceTag.classList.add('is-lifted');
+    }
     if (state.room) {
       $('sheetTitle').textContent = roomTitle(state.room);
       $('sheetPrice').textContent = priceLine(state.room);
@@ -513,7 +564,7 @@
       if (u) {
         const full = [u.first_name, u.last_name].filter(Boolean).join(' ');
         if (full) $('fName').value = full;
-        if (u.language_code === 'ru' && !localStorage.getItem('dh.lang')) state.lang = 'ru';
+        if (u.language_code === 'ru' && !storedLang()) state.lang = 'ru';
       }
     }
 

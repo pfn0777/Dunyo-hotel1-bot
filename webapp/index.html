@@ -177,7 +177,7 @@
       <span class="field__label" id="lName">Ism-familiya</span>
       <span class="field__stamp">
         <svg class="ico ico--stamp" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-guest"/></svg>
-        <input class="field__in" type="text" id="fName" autocomplete="name" enterkeyhint="next">
+        <input class="field__in" type="text" id="fName" autocomplete="name" enterkeyhint="next" maxlength="80">
       </span>
     </label>
     <p class="err" role="alert" id="errName" hidden></p>
@@ -186,7 +186,7 @@
       <span class="field__label" id="lPhone">Telefon</span>
       <span class="field__stamp">
         <svg class="ico ico--stamp" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg>
-        <input class="field__in" type="tel" id="fPhone" inputmode="tel" autocomplete="tel" value="+998 ">
+        <input class="field__in" type="tel" id="fPhone" inputmode="tel" autocomplete="tel" value="+998 " maxlength="24">
       </span>
     </label>
     <p class="err" role="alert" id="errPhone" hidden></p>
@@ -210,6 +210,9 @@
     </div>
 
     <p class="notice" id="notice" hidden></p>
+
+    <!-- Only shown when Telegram itself refuses the send (payload over 4096 bytes). -->
+    <p class="err" role="alert" id="errSend" hidden></p>
 
     <button class="brass-btn brass-btn--wide" id="sendBtn" type="submit">
       <span id="sendBtnText">SO‘ROVNI YUBORISH</span>

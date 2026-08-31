@@ -23,7 +23,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
+from aiogram.enums import ChatType, ParseMode
 from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import CommandStart
 from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
@@ -166,6 +166,18 @@ TEXTS = {
         "som": "сум",
     },
 }
+
+
+def keyboard_for(message: Message, settings: Settings, lang: str) -> ReplyKeyboardMarkup | None:
+    """The keyboard, but only where Telegram accepts it.
+
+    `KeyboardButton.web_app` is a private-chat-only field. `OWNER_CHAT_ID` may be
+    a group id (see .env.example), so /start in that group would otherwise raise
+    TelegramAPIError and the sender would get no reply at all.
+    """
+    if message.chat.type != ChatType.PRIVATE:
+        return None
+    return keyboard(settings, lang)
 
 
 def keyboard(settings: Settings, lang: str) -> ReplyKeyboardMarkup:
@@ -326,7 +338,7 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
     @dp.message(CommandStart())
     async def on_start(message: Message) -> None:
         lang = "ru" if (message.from_user and message.from_user.language_code == "ru") else "uz"
-        await message.answer(TEXTS[lang]["start"], reply_markup=keyboard(settings, lang))
+        await message.answer(TEXTS[lang]["start"], reply_markup=keyboard_for(message, settings, lang))
 
     @dp.message(F.web_app_data)
     async def on_web_app_data(message: Message, bot: Bot) -> None:
@@ -344,15 +356,18 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
             return
 
         if not isinstance(payload, dict):
-            logger.warning("Non-object web_app_data from user_id=%s: %r", user.id, payload)
+            logger.warning("Non-object web_app_data from user_id=%s (%s)", user.id, type(payload).__name__)
             await message.answer(TEXTS[lang]["bad"])
             return
 
         result = render_request(payload)
         lang = result.lang
         if isinstance(result, Rejected):
+            # The payload itself is never logged: it carries the guest's name and
+            # phone, and journalctl keeps them forever. The reason key is enough
+            # to tell which field was unusable.
             logger.warning(
-                "Rejected web_app_data from user_id=%s (%s): %r", user.id, result.reason, payload
+                "Rejected web_app_data from user_id=%s (%s)", user.id, result.reason
             )
             await message.answer(TEXTS[lang][result.reason])
             return
@@ -396,7 +411,7 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
     @dp.message()
     async def on_anything_else(message: Message) -> None:
         lang = "ru" if (message.from_user and message.from_user.language_code == "ru") else "uz"
-        await message.answer(TEXTS[lang]["fallback"], reply_markup=keyboard(settings, lang))
+        await message.answer(TEXTS[lang]["fallback"], reply_markup=keyboard_for(message, settings, lang))
 
     return dp
 

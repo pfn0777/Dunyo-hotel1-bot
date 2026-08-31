@@ -69,6 +69,8 @@ const T = {
     errIn: 'Kelish sanasini tanlang.',
     errOut: 'Ketish sanasi kelish sanasidan keyin bo‘lishi kerak.',
     errPast: 'Kelish sanasi o‘tib ketgan. Yangi sana tanlang.',
+    errTooLong: (n) => `Eng ko‘pi bilan ${n} kecha. Uzunroq muddat uchun mehmonxonaga to‘g‘ridan-to‘g‘ri murojaat qiling.`,
+    errSend: 'So‘rovni yuborib bo‘lmadi. Ism va telefon maydonlarini qisqartirib, qayta urinib ko‘ring.',
 
     outsideTg: 'Bu sahifa Telegram ichida ochilganda so‘rov yuboradi. Hozir ko‘rish rejimida.',
     close: 'Yopish',
@@ -124,6 +126,8 @@ const T = {
     errIn: 'Выберите дату заезда.',
     errOut: 'Дата выезда должна быть позже даты заезда.',
     errPast: 'Дата заезда уже прошла. Выберите другую.',
+    errTooLong: (n) => `Не более ${n} ночей. Для более длительного проживания свяжитесь с отелем напрямую.`,
+    errSend: 'Не удалось отправить заявку. Сократите поля «Имя» и «Телефон» и попробуйте ещё раз.',
 
     outsideTg: 'Заявка отправляется только внутри Telegram. Сейчас режим просмотра.',
     close: 'Закрыть',
