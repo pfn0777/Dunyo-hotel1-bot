@@ -58,6 +58,8 @@ cp .env.example .env            # keyin to'ldiring
 - `WEBAPP_URL` — Vercel manzili (majburiy `https://`, Telegram boshqasini qabul qilmaydi)
 - `OWNER_CHAT_ID` — so'rovlar kimga borishi. Egasining akkauntidan
   [@userinfobot](https://t.me/userinfobot) ga yozing, u ID beradi.
+- `INFO_URL` — ixtiyoriy. "ℹ️ Qo'shimcha ma'lumotlar" tugmasi ochadigan ikkinchi
+  sahifa (majburiy `https://`). Bo'sh qoldirilsa, tugma umuman ko'rinmaydi.
 
 ### 4. Botni ishga tushiring
 

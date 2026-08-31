@@ -32,6 +32,8 @@ cp bot/.env.example bot/.env
 - `WEBAPP_URL` — 1-qadamdagi Vercel manzili
 - `OWNER_CHAT_ID` — so'rovlar tushadigan chat. Ega akkauntidan
   [@userinfobot](https://t.me/userinfobot) ga yozib oling.
+- `INFO_URL` — ixtiyoriy, "ℹ️ Qo'shimcha ma'lumotlar" tugmasining manzili
+  (`https://`). Bo'sh bo'lsa tugma chizilmaydi.
 
 `bot/.env` gitignore'da — hech qachon commit qilinmaydi.
 

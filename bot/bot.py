@@ -20,13 +20,20 @@ import re
 import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ChatType, ParseMode
 from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import CommandStart
-from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
+from aiogram.types import (
+    FSInputFile,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+    WebAppInfo,
+)
 from dotenv import load_dotenv
 
 from rooms import BY_ID, ROOMS
@@ -48,6 +55,15 @@ REQUEST_COOLDOWN_SEC = 30
 # and avoids depending on the tz database being present on the host. The server
 # runs in UTC; without this, "today" flips five hours early for the guest.
 TASHKENT = timezone(timedelta(hours=5))
+
+# The hotel itself, sent as a plain location after the welcome photo. A plain pin
+# rather than a venue: tapping it lets the guest open whichever map app they use,
+# which in Uzbekistan is as often Yandex as Google.
+HOTEL_LAT = 41.216128
+HOTEL_LON = 69.266011
+
+# Absolute: the systemd unit does not guarantee a working directory.
+WELCOME_PHOTO = Path(__file__).parent / "assets" / "welcome.jpg"
 
 
 class ConfigError(Exception):
@@ -95,10 +111,20 @@ def load_settings() -> Settings:
 
 TEXTS = {
     "uz": {
+        # Sent as the welcome photo's caption, so it must stay under Telegram's
+        # 1024-character caption limit. Everything it claims about the hotel came
+        # from the owner — nothing here is inferred.
         "start": (
-            "Assalomu alaykum! Dunyo Hotel 1.\n\n"
-            "Xonalar, rasmlar va narxlarni ko‘rish hamda bron so‘rovini yuborish uchun "
-            "quyidagi tugmani bosing."
+            "🏨 <b>Dunyo Hotel 1</b> — xush kelibsiz!\n\n"
+            "📍 Toshkent, Sergeli — Quruvchilar 2, Farog‘atli 2\n\n"
+            "<b>Har bir xonada:</b>\n"
+            "🚿 Dush va sanuzel\n"
+            "🛏 Spalni\n"
+            "❄️ Konditsioner\n"
+            "📺 Smart TV\n"
+            "📶 Wi-Fi\n\n"
+            "🔑 Xonalar, rasmlar va narxlarni ko‘rish hamda bron so‘rovini yuborish uchun "
+            "pastdagi tugmani bosing."
         ),
         "open": "🔑 Xonalarni ko‘rish",
         "info": "ℹ️ Qo‘shimcha ma’lumotlar",
@@ -132,8 +158,15 @@ TEXTS = {
     },
     "ru": {
         "start": (
-            "Здравствуйте! Dunyo Hotel 1.\n\n"
-            "Нажмите кнопку ниже, чтобы посмотреть номера, фото и цены "
+            "🏨 <b>Dunyo Hotel 1</b> — добро пожаловать!\n\n"
+            "📍 Ташкент, Сергели — Курувчилар 2, Фарогатли 2\n\n"
+            "<b>В каждом номере:</b>\n"
+            "🚿 Душ и санузел\n"
+            "🛏 Спальня\n"
+            "❄️ Кондиционер\n"
+            "📺 Smart TV\n"
+            "📶 Wi-Fi\n\n"
+            "🔑 Нажмите кнопку ниже, чтобы посмотреть номера, фото и цены "
             "и отправить заявку на бронирование."
         ),
         "open": "🔑 Посмотреть номера",
@@ -335,10 +368,40 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
     dp = Dispatcher()
     cooldown = Cooldown()
 
+    # Telegram's file_id for the welcome photo, learned from the first successful
+    # send. In memory for the same reason Cooldown is (see its docstring): one
+    # process, and re-uploading 250 KB once after a restart costs nothing.
+    photo_id: str | None = None
+
     @dp.message(CommandStart())
     async def on_start(message: Message) -> None:
+        nonlocal photo_id
         lang = "ru" if (message.from_user and message.from_user.language_code == "ru") else "uz"
-        await message.answer(TEXTS[lang]["start"], reply_markup=keyboard_for(message, settings, lang))
+        caption = TEXTS[lang]["start"]
+        markup = keyboard_for(message, settings, lang)
+
+        # The keyboard rides on the photo, and the photo is the part that can fail:
+        # a missing file or a Telegram hiccup must not take /start down with it,
+        # because the reply keyboard it carries is the only thing sendData() works
+        # from. On failure the guest gets the same text as a plain message.
+        try:
+            sent = await message.answer_photo(
+                photo_id or FSInputFile(WELCOME_PHOTO),
+                caption=caption,
+                reply_markup=markup,
+            )
+            if photo_id is None and sent.photo:
+                photo_id = sent.photo[-1].file_id
+        except (TelegramAPIError, OSError):
+            logger.exception("Could not send the welcome photo; falling back to text")
+            await message.answer(caption, reply_markup=markup)
+
+        # Secondary: the guest already has the post and the button. A map that did
+        # not arrive is worth a log line, not a failed /start.
+        try:
+            await message.answer_location(latitude=HOTEL_LAT, longitude=HOTEL_LON)
+        except TelegramAPIError:
+            logger.warning("Could not send the hotel location", exc_info=True)
 
     @dp.message(F.web_app_data)
     async def on_web_app_data(message: Message, bot: Bot) -> None:
