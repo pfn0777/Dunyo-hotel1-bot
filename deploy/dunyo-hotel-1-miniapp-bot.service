@@ -1,0 +1,39 @@
+[Unit]
+Description=Dunyo Hotel 1 Mini App bot (aiogram, long polling)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dunyo-hotel-1-miniapp
+Group=dunyo-hotel-1-miniapp
+
+# bot.py does `from rooms import ...` — a flat import with no package, so the
+# process must start with bot/ as its working directory. load_dotenv() finds
+# bot/.env from here; there is no EnvironmentFile on purpose, so the .env has
+# exactly one reader.
+WorkingDirectory=/opt/dunyo-hotel-1-miniapp-bot/bot
+ExecStart=/opt/dunyo-hotel-1-miniapp-bot/.venv/bin/python bot.py
+
+# Telegram long polling dies on any sustained network fault; without this the
+# hotel silently stops receiving requests until someone notices.
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dunyo-hotel-1-miniapp-bot
+
+# The bot needs the network and its own directory. Nothing else.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/dunyo-hotel-1-miniapp-bot
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

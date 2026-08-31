@@ -1,0 +1,11 @@
+# Python 3.11+ (tested on 3.11.9; the VPS runs 3.14).
+# Pinned exactly: the bot runs unattended on a VPS, so a `pip install` six months
+# from now must produce the same bot that was tested. Bump these by hand.
+#
+# aiogram was 3.13.1 until the first VPS deploy. It resolves to pydantic <2.10,
+# whose pydantic-core has no cp314 wheel, so pip tried to build it from Rust
+# source and failed on the server. 3.30.0 allows a pydantic with cp314 wheels.
+# The API surface this bot uses (Bot/Dispatcher/F, DefaultBotProperties,
+# CommandStart, WebAppInfo, TelegramAPIError) is unchanged between the two.
+aiogram==3.30.0
+python-dotenv==1.0.1

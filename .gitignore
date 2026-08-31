@@ -1,0 +1,23 @@
+# Secrets. `.env.example` is the committed template and must survive these rules,
+# so its negation stays LAST — in gitignore the final matching pattern wins.
+.env
+.env.*
+*.env
+!.env.example
+!*/.env.example
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# Vercel CLI: project link and the OIDC token it downloads.
+.vercel
+
+# Internal design-review artifacts (mockups, screenshots, the design sidecar).
+# DESIGN.md is the committed record; this directory is working material.
+.impeccable/
+
+# Original room photos (source for ingest, not deployed)
+photos/
+photos-jpg/

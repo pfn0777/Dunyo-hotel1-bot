@@ -1,0 +1,946 @@
+/* Dunyo Hotel 1 — reception key board.
+   One world: walnut board, felt-backed pigeonholes, aged brass tags,
+   guest-card paper. Committed in both Telegram themes: the board is a
+   physical object, not a color scheme. */
+
+:root {
+  --wood-0: #120C09;
+  --wood-1: #1B120E;
+  --wood-2: #241811;
+  --wood-3: #302016;
+  --wood-lip: #3D2A1C;
+  --wood-edge: #513722;
+
+  --felt: #56201A;
+  --felt-dk: #34120D;
+
+  --brass-hi: #F6E9BC;
+  --brass-1: #E0C377;
+  --brass-2: #BE9749;
+  --brass-3: #8E6C2C;
+  --brass-4: #5C441A;
+  --brass-line: #3A2A0C;
+
+  --paper: #EDE3CE;
+  --paper-2: #E3D6BA;
+  --rule: #BFAD89;
+  --ink: #2A2018;
+  --ink-dim: #6B5C48;
+  --stamp: #4A2F6B;
+  --alarm: #A8321F;
+
+  --on-wood: #EBD9BE;
+  --on-wood-dim: #C0A177;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  /* The board is walnut and the pigeonholes are lined with felt. Both are
+     real tiling material, not a gradient impression of one. */
+  --walnut: url("images/walnut.webp");
+  --felt-tex: url("images/felt.webp");
+  --paper-tex: url("images/paper.webp");
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: var(--tg-viewport-stable-height, 100vh);
+  font: 400 16px/1.45 'PT Sans', system-ui, sans-serif;
+  color: var(--on-wood);
+  background: var(--wood-1);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Browser surfaces the design still owns. */
+::selection { background: var(--brass-2); color: var(--wood-0); }
+::placeholder { color: var(--ink-dim); opacity: 1; }
+:focus-visible {
+  outline: 2px solid var(--brass-1);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.card__scroll::-webkit-scrollbar, .sheet__scroll::-webkit-scrollbar { width: 6px; }
+.card__scroll::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+.sheet__scroll::-webkit-scrollbar-thumb { background: var(--brass-4); border-radius: 3px; }
+
+.sprite { position: absolute; width: 0; height: 0; }
+.ico { width: 20px; height: 20px; flex: none; }
+
+/* ─────────────────────────  brass rail  ───────────────────────── */
+
+.rail {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 14px calc(9px + 1px);
+  background:
+    linear-gradient(178deg,
+      var(--brass-hi) 0%, var(--brass-1) 14%, var(--brass-2) 42%,
+      var(--brass-3) 62%, var(--brass-1) 84%, var(--brass-4) 100%);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .35), 0 10px 18px -6px rgba(0, 0, 0, .55);
+}
+
+.rail__name {
+  font-family: 'PT Sans Narrow', 'PT Sans', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  color: var(--brass-line);
+  text-shadow: 0 1px 0 rgba(255, 246, 214, .6);
+}
+
+/* engraved two-position language switch */
+.langsw {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  width: 76px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  /* the well is cut deep enough that the unselected label still clears 4.5:1 */
+  background: linear-gradient(180deg, #2E210A, #4A370E);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, .6), 0 1px 0 rgba(255, 244, 208, .45);
+  cursor: pointer;
+}
+.langsw__slot {
+  position: relative;
+  z-index: 2;
+  padding: 4px 0;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: #E4CE95;
+  transition: color .25s var(--ease);
+}
+.langsw__knob {
+  position: absolute;
+  z-index: 1;
+  inset: 2px 50% 2px 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass-2) 60%, var(--brass-3));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+  transition: transform .32s var(--ease);
+}
+body[data-lang="ru"] .langsw__knob { transform: translateX(calc(100% - 0px)); }
+body[data-lang="uz"] .langsw__slot[data-lang="uz"],
+body[data-lang="ru"] .langsw__slot[data-lang="ru"] { color: var(--brass-line); }
+
+/* ─────────────────────────  the board  ───────────────────────── */
+
+.board {
+  position: relative;
+  min-height: calc(var(--tg-viewport-stable-height, 100vh) - 44px);
+  padding: 14px 14px calc(20px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(125% 78% at 50% -14%,
+      rgba(255, 216, 158, .30) 0%,
+      rgba(90, 58, 32, .10) 42%,
+      rgba(0, 0, 0, .58) 100%),
+    var(--walnut) repeat 0 0 / 240px auto,
+    var(--wood-1);
+  transition: transform .42s var(--ease), filter .42s var(--ease);
+  transform-origin: 50% 0;
+}
+body.is-over .board {
+  transform: scale(.955) translateY(-6px);
+  filter: brightness(.42) saturate(.7);
+}
+
+.board__note {
+  margin: 2px 0 12px;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--on-wood-dim);
+}
+
+.holes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (min-width: 560px) { .holes { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 860px) {
+  /* Telegram Desktop gives the Mini App a tall window; hang the board in it
+     rather than letting it sit on top of a void. */
+  .board {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 900px;
+    margin-inline: auto;
+    /* one 240px tile repeated across 1100px reads as corduroy; a wider plank
+       plus an off-axis sheen breaks the lockstep the eye picks up */
+    background:
+      radial-gradient(125% 78% at 50% -14%,
+        rgba(255, 216, 158, .30) 0%,
+        rgba(90, 58, 32, .10) 42%,
+        rgba(0, 0, 0, .58) 100%),
+      linear-gradient(101deg,
+        rgba(0, 0, 0, .26) 0%,
+        rgba(255, 214, 158, .07) 27%,
+        rgba(0, 0, 0, .22) 51%,
+        rgba(255, 214, 158, .05) 78%,
+        rgba(0, 0, 0, .28) 100%),
+      var(--walnut) repeat 0 0 / 520px auto,
+      var(--wood-1);
+  }
+  .holes { grid-template-columns: repeat(4, 1fr); }
+  .sheet, .card { left: 50%; right: auto; width: min(560px, 100%); transform: translate(-50%, 101%); }
+  .sheet.is-on, .card.is-on { transform: translate(-50%, 0); }
+  .sheet, .card { border-radius: 14px 14px 0 0; }
+}
+
+/* one pigeonhole: recessed mouth + engraved wood lip */
+.hole {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(255, 220, 168, .16), rgba(0, 0, 0, .12) 62%, rgba(0, 0, 0, .3)),
+    var(--walnut) repeat 0 0 / 180px auto,
+    var(--wood-2);
+  box-shadow:
+    0 1px 0 rgba(255, 226, 176, .09),
+    0 6px 14px -6px rgba(0, 0, 0, .8);
+  cursor: pointer;
+  text-align: center;
+  overflow: hidden;
+  transition: transform .18s var(--ease);
+}
+.hole:active { transform: translateY(1px) scale(.985); }
+
+.hole__mouth {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 13px 0 12px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .62) 0%, rgba(0, 0, 0, .06) 46%, rgba(0, 0, 0, .55) 100%),
+    var(--felt-tex) repeat 0 0 / 128px auto,
+    var(--felt);
+  box-shadow:
+    inset 0 7px 10px -4px rgba(0, 0, 0, .85),
+    inset 0 -2px 0 rgba(255, 220, 170, .08),
+    inset 3px 0 6px -3px rgba(0, 0, 0, .7),
+    inset -3px 0 6px -3px rgba(0, 0, 0, .7);
+}
+
+/* the hook the tag hangs from */
+.hole__hook {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 12px;
+  height: 9px;
+  margin-left: -6px;
+  border: 2px solid var(--brass-2);
+  border-top-color: var(--brass-hi);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6));
+}
+
+/* brass key tag */
+.tag {
+  --tilt: 0deg;
+  position: relative;
+  display: block;
+  width: 68%;
+  transform: rotate(var(--tilt));
+  max-width: 92px;
+  padding: 13px 0 9px;
+  border-radius: 5px 5px 9px 9px;
+  background:
+    repeating-linear-gradient(177deg,
+      rgba(255, 255, 255, .05) 0 1px, rgba(0, 0, 0, .045) 1px 2px),
+    linear-gradient(177deg,
+      var(--brass-hi) 0%, var(--brass-1) 9%, var(--brass-2) 27%,
+      var(--brass-2) 63%, var(--brass-1) 79%, var(--brass-3) 93%, var(--brass-4) 100%);
+  /* the tag hangs: the shadow is thrown from the hook, so it sits below and
+     slightly right of the plate rather than ringing it evenly */
+  box-shadow:
+    0 1px 0 rgba(255, 250, 224, .5) inset,
+    0 -2px 3px rgba(0, 0, 0, .3) inset,
+    2px 7px 8px -4px rgba(0, 0, 0, .8),
+    1px 3px 2px -2px rgba(0, 0, 0, .55);
+  transition: transform .3s var(--ease), opacity .26s var(--ease);
+}
+
+/* Eight objects on a board, not eight copies of one object: each plate hangs
+   at its own angle and carries its own wear. */
+.hole:nth-child(2n) .tag { --tilt: .9deg; }
+.hole:nth-child(3n) .tag { --tilt: -1.1deg; }
+.hole:nth-child(5n) .tag { --tilt: .5deg; }
+.hole:nth-child(1) .tag { --tilt: -.7deg; }   /* nothing on a real board */
+.hole:nth-child(7) .tag { --tilt: 1.3deg; }   /* hangs perfectly straight */
+.hole:nth-child(2n) .tag::after { background: linear-gradient(126deg, rgba(255,253,240,.26) 0 9%, rgba(255,253,240,.06) 17%, transparent 31%); }
+.hole:nth-child(3n) .tag::after { background: linear-gradient(110deg, rgba(255,253,240,.4) 0 13%, rgba(255,253,240,.1) 22%, transparent 37%); }
+.hole:nth-child(4n) .tag { filter: saturate(.88) brightness(.95); }
+.hole:nth-child(5n) .tag { filter: saturate(1.06) brightness(1.03); }
+.hole:nth-child(7n) .tag { filter: saturate(.82) brightness(.92); }
+.tag::after {                        /* specular skim, kept off the numerals */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(118deg,
+    rgba(255, 253, 240, .34) 0 11%,
+    rgba(255, 253, 240, .09) 19%,
+    transparent 34%);
+  pointer-events: none;
+}
+.tag::before {                       /* the drilled hole the hook passes through */
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #1A1206, #45320F 70%, #6E5320);
+  box-shadow: 0 1px 0 rgba(255, 248, 214, .55);
+}
+.hole:active .tag { transform: translateY(-4px) rotate(calc(var(--tilt) - 1.6deg)); }
+/* the key is in the guest's hand: the hook stands empty until it is returned */
+.tag.is-lifted { opacity: 0; transform: translateY(-14px) rotate(calc(var(--tilt) - 4deg)); }
+
+.tag__num {
+  display: block;
+  font-family: 'Archivo', 'PT Sans Narrow', sans-serif;
+  font-weight: 900;
+  font-size: clamp(25px, 8vw, 33px);
+  line-height: 1;
+  letter-spacing: -.015em;
+  font-variant-numeric: tabular-nums;
+  color: #4A360F;
+  text-shadow: 0 1px 0 rgba(255, 247, 216, .62), 0 -1px 0 rgba(0, 0, 0, .28);
+}
+/* the shared kitchen has no number, so its plate carries the key itself */
+.tag__mark { display: grid; place-items: center; color: #4A360F; }
+.tag__mark svg {
+  width: clamp(26px, 8vw, 33px);
+  height: clamp(26px, 8vw, 33px);
+  filter: drop-shadow(0 1px 0 rgba(255, 247, 216, .55));
+}
+.tag--docked .tag__mark svg { width: 23px; height: 23px; }
+
+.hole__lip {
+  /* block, not inline: an inline box wrapping a block child splits into
+     anonymous boxes and Chrome paints a seam down the middle of it. */
+  display: block;
+  padding: 8px 6px 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 224, 172, .1), rgba(0, 0, 0, .52)),
+    var(--walnut) repeat 0 -60px / 180px auto,
+    var(--wood-lip);
+  box-shadow: inset 0 1px 0 rgba(255, 228, 178, .13);
+}
+.hole__price {
+  display: block;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-wood-dim);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
+}
+
+/* engraved address plate at the foot of the board */
+.plaque {
+  margin-top: 22px;
+  padding: 15px 16px 14px;
+  border-radius: 4px;
+  /* a darker plate sunk into the board, not another face of it */
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .82), rgba(0, 0, 0, .68) 40%, rgba(0, 0, 0, .86)),
+    var(--walnut) repeat 0 -140px / 200px auto,
+    var(--wood-0);
+  box-shadow:
+    inset 0 8px 12px -5px rgba(0, 0, 0, .95),
+    inset 0 -7px 11px -6px rgba(0, 0, 0, .8),
+    inset 4px 0 8px -5px rgba(0, 0, 0, .85),
+    inset -4px 0 8px -5px rgba(0, 0, 0, .85),
+    inset 0 -1px 0 rgba(255, 226, 176, .16),
+    0 1px 0 rgba(255, 226, 176, .1);
+}
+.plaque__label {
+  margin: 0 0 6px;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--brass-2);
+}
+.plaque__addr {
+  display: block;
+  margin: 0 0 13px;
+  padding: 0;
+  max-width: 34ch;
+  border: 0;
+  background: none;
+  font: 400 15px/1.45 'PT Sans', sans-serif;
+  text-align: left;
+  color: var(--on-wood);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .65);
+  cursor: pointer;
+}
+.plaque__addr:active { color: var(--brass-1); }
+.plaque__map {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 15px;
+  border: 1px solid var(--brass-4);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(224, 195, 119, .16), rgba(90, 68, 26, .22));
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--brass-1);
+  cursor: pointer;
+}
+.plaque__map:active { background: linear-gradient(180deg, rgba(224, 195, 119, .3), rgba(90, 68, 26, .3)); }
+
+/* ─────────────────────────  overlays  ───────────────────────── */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  background: rgba(10, 6, 4, .55);
+  opacity: 0;
+  transition: opacity .35s var(--ease);
+}
+.scrim.is-on { opacity: 1; }
+
+.sheet, .card {
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 94%;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(101%);
+  transition: transform .42s var(--ease);
+}
+.sheet.is-on, .card.is-on { transform: translateY(0); }
+
+/* room sheet — still the board's material */
+.sheet {
+  border-radius: 14px 14px 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 216, 158, .17) 0%, rgba(0, 0, 0, .28) 38%, rgba(0, 0, 0, .62) 100%),
+    var(--walnut) repeat 0 0 / 240px auto,
+    var(--wood-1);
+  box-shadow: 0 -2px 0 var(--brass-4), 0 -18px 40px -10px rgba(0, 0, 0, .8);
+}
+.sheet__close, .card__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(20, 12, 8, .5);
+  color: var(--brass-1);
+  cursor: pointer;
+}
+.card__close { background: rgba(42, 32, 24, .1); color: var(--ink-dim); }
+
+.sheet__scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 14px 4px;
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.tag--docked {
+  width: 62px;
+  flex: none;
+  padding: 12px 0 8px;
+}
+.tag--docked .tag__num { font-size: 23px; }
+
+.sheet__title {
+  margin: 0;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--on-wood);
+}
+.sheet__price {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--brass-1);
+}
+
+/* photo plate — a framed panel set into the wood */
+.plate {
+  border-radius: 5px;
+  background: var(--wood-0);
+  box-shadow:
+    inset 0 0 0 1px rgba(224, 195, 119, .22),
+    inset 0 4px 10px -4px rgba(0, 0, 0, .9);
+  overflow: hidden;
+}
+.plate__strip {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.plate__strip::-webkit-scrollbar { display: none; }
+.plate__strip img {
+  flex: none;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  scroll-snap-align: center;
+  background: var(--wood-2);
+}
+.plate__rivets {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent);
+}
+/* the rivet reads at 7px but is struck at 44px — thumbs are not styluses */
+.rivet {
+  position: relative;
+  width: 26px;
+  height: 44px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+.rivet::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #6B5220, #2E220A);
+  box-shadow: 0 1px 0 rgba(255, 240, 200, .2);
+  transition: background .25s var(--ease), transform .25s var(--ease);
+}
+.rivet.is-on::after {
+  background: radial-gradient(circle at 40% 30%, var(--brass-hi), var(--brass-3));
+  transform: scale(1.35);
+}
+
+.sheet__note {
+  margin: 14px 0 0;
+  max-width: 46ch;
+  font-size: 14.5px;
+  color: var(--on-wood-dim);
+}
+
+.sheet__foot {
+  padding: 14px 14px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .45) 60%);
+}
+
+.brass-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 5px;
+  background:
+    linear-gradient(178deg,
+      var(--brass-hi) 0%, var(--brass-1) 18%, var(--brass-2) 48%,
+      var(--brass-3) 72%, var(--brass-1) 92%, var(--brass-4) 100%);
+  box-shadow: 0 3px 0 var(--brass-4), 0 10px 18px -8px rgba(0, 0, 0, .85);
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--brass-line);
+  text-shadow: 0 1px 0 rgba(255, 249, 222, .55);
+  cursor: pointer;
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease);
+}
+.brass-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--brass-4), 0 4px 10px -6px rgba(0, 0, 0, .85);
+}
+.brass-btn[disabled] {
+  filter: grayscale(.65) brightness(.72);
+  cursor: default;
+  box-shadow: 0 3px 0 #3B3222;
+}
+.brass-btn--wide { margin-top: 18px; }
+
+/* ─────────────────────────  guest card  ───────────────────────── */
+
+.card {
+  border-radius: 10px 10px 0 0;
+  color: var(--ink);
+  background:
+    linear-gradient(184deg, rgba(255, 252, 244, .5) 0%, rgba(190, 172, 136, .28) 100%),
+    var(--paper-tex) repeat 0 0 / 210px auto,
+    var(--paper);
+  box-shadow: 0 -1px 0 #9A8A6C, 0 -18px 40px -10px rgba(0, 0, 0, .75);
+}
+.card__scroll {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 18px calc(22px + env(safe-area-inset-bottom));
+}
+/* the purple date stamp, overprinted on the card rather than laid out with it */
+.field--stamped { position: relative; }
+.stamp {
+  position: absolute;
+  top: -14px;
+  right: -14px;              /* struck half off the edge of the paper */
+  width: 104px;
+  height: 104px;
+  color: var(--stamp);
+  opacity: .5;
+  transform: rotate(-9deg);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.stamp text {
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+}
+.stamp__arc { font-size: 12px; letter-spacing: 2.6px; }
+.stamp__lab { font-size: 8.5px; letter-spacing: 2.2px; }
+.stamp__date { font-size: 17px; letter-spacing: .6px; }
+@media (min-width: 560px) { .stamp { right: 8px; } }
+
+.sheet:focus, .card:focus { outline: none; }
+
+.card__title {
+  position: relative;
+  margin: 0;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+.card__lead {
+  margin: 6px 0 22px;
+  max-width: 44ch;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.field { display: block; margin-bottom: 16px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field__label {
+  display: block;
+  margin-bottom: 5px;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.field__stamp { position: relative; display: block; }
+.ico--stamp {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin-top: -10px;
+  color: var(--stamp);
+  opacity: .55;
+  pointer-events: none;
+}
+.field__stamp .field__in { padding-left: 29px; }
+
+.field__in {
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 1.5px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  font: 400 16.5px/1.3 'PT Sans', sans-serif;
+  color: var(--ink);
+  caret-color: var(--stamp);
+  appearance: none;
+}
+.field__in:focus { outline: 0; border-bottom-color: var(--stamp); }
+.field__in--sel {
+  padding-right: 22px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%234A2F6B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 2px center / 12px 8px;
+}
+.field__in[type="date"] { font-variant-numeric: tabular-nums; }
+/* the native picker still opens — it is stretched over the whole field rather
+   than hidden, so the drawn stamp icon beside it is not a dead decoy */
+.field__in[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.field.is-bad .field__in { border-bottom-color: var(--alarm); }
+
+.err {
+  margin: -10px 0 14px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--alarm);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid var(--rule);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .3);
+}
+.stepper__btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--stamp);
+  cursor: pointer;
+}
+.stepper__btn[disabled] { color: #B9AC92; cursor: default; }
+.stepper__val {
+  min-width: 34px;
+  text-align: center;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* nights + total as physical brass digit tiles */
+.tally {
+  margin: 24px 0 0;
+  padding: 14px 14px 12px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #241811, #150E0A);
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .8);
+}
+.tally__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+.tally__row--sum { margin-top: 6px; padding-top: 9px; border-top: 1px solid rgba(224, 195, 119, .2); }
+.tally__k {
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--on-wood-dim);
+}
+.digits { display: flex; gap: 2px; }
+.digit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  padding: 3px 2px 4px;
+  border-radius: 2px;
+  background: linear-gradient(178deg, var(--brass-1), var(--brass-2) 55%, var(--brass-4));
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 17px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brass-line);
+  box-shadow: 0 1px 0 rgba(255, 248, 214, .4) inset, 0 2px 4px -2px rgba(0, 0, 0, .8);
+}
+.digit--gap {
+  min-width: 5px;
+  background: none;
+  box-shadow: none;
+  color: transparent;
+}
+.digit--unit {
+  background: none;
+  box-shadow: none;
+  color: var(--on-wood-dim);
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: .1em;
+  padding-left: 5px;
+}
+.digits--sum .digit { font-size: 21px; min-width: 20px; padding: 5px 3px 6px; }
+@keyframes tileIn {
+  from { opacity: 0; transform: translateY(-45%) rotateX(58deg); }
+  to   { opacity: 1; transform: none; }
+}
+.digit.is-new { animation: tileIn .28s var(--ease) both; }
+.tally__note {
+  margin: 9px 0 0;
+  font-size: 12.5px;
+  color: var(--on-wood-dim);
+}
+
+/* perforated tear-off stub: exactly what the owner will receive */
+.stub { margin-top: 22px; }
+.stub__perf {
+  height: 13px;
+  margin: 0 -18px 14px;
+  background:
+    radial-gradient(circle at 6.5px 6.5px,
+      rgba(90, 74, 44, .55) 0 2.1px,
+      rgba(255, 255, 255, .5) 2.1px 3.1px,
+      transparent 3.3px) repeat-x 0 0 / 13px 13px;
+}
+.stub__title {
+  margin: 0 0 8px;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+.stub__body {
+  margin: 0;
+  padding: 12px 13px;
+  border-left: 1px solid var(--rule);
+  background: rgba(255, 255, 255, .34);
+  font: 400 14px/1.55 'PT Sans Narrow', 'PT Sans', sans-serif;
+  letter-spacing: .01em;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notice {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border-left: 2px solid var(--stamp);
+  background: rgba(74, 47, 107, .09);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* ─────────────────────────  done / toast  ───────────────────────── */
+
+.done {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 32px;
+  text-align: center;
+  background: radial-gradient(90% 60% at 50% 40%, var(--wood-2), var(--wood-0));
+}
+.done__mark {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(178deg, var(--brass-hi), var(--brass-2) 55%, var(--brass-4));
+  color: var(--brass-line);
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .8);
+  animation: tileIn .4s var(--ease) both;
+}
+.done__mark .ico { width: 30px; height: 30px; }
+.done__text { margin: 0; max-width: 26ch; font-size: 17px; color: var(--on-wood); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 30;
+  transform: translate(-50%, 14px);
+  padding: 10px 16px;
+  border-radius: 4px;
+  background: var(--wood-0);
+  box-shadow: 0 0 0 1px var(--brass-4), 0 8px 18px -8px rgba(0, 0, 0, .9);
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--brass-1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s var(--ease), transform .25s var(--ease);
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+body.is-locked { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
