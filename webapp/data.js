@@ -16,14 +16,14 @@ const HOTEL = {
 };
 
 const ROOMS = [
-  { id: '2', plate: '2', price: 450000, photos: ['r2-1.webp', 'r2-2.webp', 'r2-3.webp', 'r2-4.webp', 'r2-5.webp', 'r2-6.webp'] },
+  { id: '2', plate: '2', price: 450000, photos: ['r2-1.webp', 'r2-2.webp', 'r2-3.webp', 'r2-4.webp', 'r2-5.webp'] },
   { id: '4', plate: '4', price: 350000, photos: ['r4-1.webp', 'r4-2.webp', 'r4-3.webp'] },
-  { id: '5', plate: '5', price: 350000, photos: ['r5-1.webp', 'r5-2.webp', 'r5-3.webp', 'r5-4.webp', 'r5-5.webp', 'r5-6.webp'] },
-  { id: '8', plate: '8', price: 300000, photos: ['r8-1.webp', 'r8-2.webp', 'r8-3.webp', 'r8-4.webp'] },
+  { id: '5', plate: '5', price: 350000, photos: ['r5-1.webp', 'r5-2.webp', 'r5-3.webp', 'r5-4.webp', 'r5-5.webp'] },
+  { id: '8', plate: '8', price: 300000, photos: ['r8-1.webp', 'r8-2.webp', 'r8-3.webp'] },
   { id: '9', plate: '9', price: 400000, photos: ['r9-1.webp', 'r9-2.webp', 'r9-3.webp', 'r9-4.webp'] },
   { id: '11', plate: '11', price: 300000, photos: ['r11-1.webp', 'r11-2.webp', 'r11-3.webp', 'r11-4.webp'] },
-  { id: '12', plate: '12', price: 300000, photos: ['r12-1.webp', 'r12-2.webp', 'r12-3.webp', 'r12-4.webp'] },
-  { id: 'kirishqismi', plate: 'KIR', price: null, photos: ['kirishqismi-1.webp', 'kirishqismi-2.webp', 'kirishqismi-3.webp', 'kirishqismi-4.webp'], shared: true, titleKey: 'kirishqismiTitle', noteKey: 'kirishqismiNote' },
+  { id: '12', plate: '12', price: 300000, photos: ['r12-1.webp', 'r12-2.webp', 'r12-3.webp'] },
+  { id: 'kirishqismi', plate: 'KIR', price: null, photos: ['kirishqismi-1.webp', 'kirishqismi-2.webp'], shared: true, titleKey: 'kirishqismiTitle', noteKey: 'kirishqismiNote' },
 ];
 
 const T = {
