@@ -13,3 +13,22 @@
 2026-08-31 18:09:20,661 INFO Update id=213579075 is handled. Duration 406 ms by bot id=8877102734
 2026-08-31 18:29:27,311 INFO Update id=213579076 is handled. Duration 452 ms by bot id=8877102734
 2026-08-31 18:31:51,049 INFO Update id=213579077 is handled. Duration 405 ms by bot id=8877102734
+2026-08-31 22:41:41,486 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2026-08-31 22:41:41,488 WARNING Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8877102734)
+2026-08-31 22:41:42,576 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2026-08-31 22:41:42,624 WARNING Sleep for 1.409651 seconds and try again... (tryings = 1, bot id = 8877102734)
+2026-08-31 22:41:45,533 INFO Connection established (tryings = 2, bot id = 8877102734)
+2026-08-31 22:41:49,784 INFO Update id=213579080 is handled. Duration 4219 ms by bot id=8877102734
+2026-08-31 22:41:49,841 INFO Update id=213579078 is handled. Duration 4311 ms by bot id=8877102734
+2026-08-31 22:41:49,869 INFO Update id=213579079 is handled. Duration 4313 ms by bot id=8877102734
+2026-09-01 09:27:50,555 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2026-09-01 09:27:52,086 WARNING Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8877102734)
+2026-09-01 09:27:53,569 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2026-09-01 09:27:53,711 WARNING Sleep for 1.236767 seconds and try again... (tryings = 1, bot id = 8877102734)
+2026-09-01 09:27:55,762 ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2026-09-01 09:27:55,763 WARNING Sleep for 1.774701 seconds and try again... (tryings = 2, bot id = 8877102734)
+2026-09-01 09:27:58,258 INFO Connection established (tryings = 3, bot id = 8877102734)
+2026-09-01 09:27:58,757 INFO Update id=213579082 is handled. Duration 484 ms by bot id=8877102734
+2026-09-01 09:27:58,848 INFO Update id=213579081 is handled. Duration 592 ms by bot id=8877102734
+2026-09-01 11:35:16,473 INFO Update id=213579083 is handled. Duration 452 ms by bot id=8877102734
+2026-09-01 11:42:04,778 INFO Update id=213579084 is handled. Duration 266 ms by bot id=8877102734
